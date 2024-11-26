@@ -37,4 +37,22 @@ if uploaded_file:
             issues_none_count = df["Issues"].str.lower().str.contains("none", na=False).sum()
             issues_other_count = df["Issues"].notna().sum() - issues_none_count
 
-            # Analyze 'Outcomes' column for 'failed' and
+            # Analyze 'Outcomes' column for 'failed' and 'borderline'
+            outcomes_failed_count = df["Outcomes"].str.lower().str.contains("failed", na=False).sum()
+            outcomes_borderline_count = df["Outcomes"].str.lower().str.contains("borderline", na=False).sum()
+
+            # Display results
+            st.subheader("Analysis Results")
+            st.write("**Issues Analysis:**")
+            st.write(f"- Count of 'None' in Issues column: {issues_none_count}")
+            st.write(f"- Count of other values in Issues column: {issues_other_count}")
+
+            st.write("**Outcomes Analysis:**")
+            st.write(f"- Count of 'Failed' in Outcomes column: {outcomes_failed_count}")
+            st.write(f"- Count of 'Borderline' in Outcomes column: {outcomes_borderline_count}")
+        else:
+            st.error(f"The uploaded file must contain the following columns: {', '.join(required_columns)}")
+    except Exception as e:
+        st.error(f"An error occurred while processing the file: {e}")
+else:
+    st.info("Please upload a file to begin analysis.")
