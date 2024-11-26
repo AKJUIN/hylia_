@@ -1,75 +1,58 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Streamlit app title
-st.title("Advanced Spreadsheet Analysis Tool")
+st.title("Spreadsheet Analysis Tool")
 
 # File upload section
 uploaded_file = st.file_uploader("Upload a spreadsheet (Excel or CSV)", type=["xlsx", "csv"])
 
 if uploaded_file:
     try:
-        # Load the file
+        # Determine file type and load into a DataFrame
         if uploaded_file.name.endswith(".csv"):
             df = pd.read_csv(uploaded_file)
-        else:
-            import openpyxl
+        elif uploaded_file.name.endswith(".xlsx"):
+            # Import openpyxl only if needed
+            try:
+                import openpyxl
+            except ImportError:
+                st.error(
+                    "Missing optional dependency 'openpyxl'. Please install it using 'pip install openpyxl'."
+                )
+                st.stop()
             df = pd.read_excel(uploaded_file, engine="openpyxl")
+        else:
+            st.error("Unsupported file format. Please upload a CSV or Excel file.")
+            st.stop()
 
-        # Display preview
+        # Display the first few rows of the uploaded file
         st.write("Preview of the uploaded file:")
         st.dataframe(df.head())
 
-        # Ensure required columns
+        # Ensure required columns exist
         required_columns = ["Issues", "Outcomes"]
-        if not all(col in df.columns for col in required_columns):
+        if all(col in df.columns for col in required_columns):
+            # Analyze 'Issues' column
+            issues_none_count = df["Issues"].str.lower().str.contains("none", na=False).sum()
+            issues_other_count = df["Issues"].notna().sum() - issues_none_count
+
+            # Analyze 'Outcomes' column for 'failed' and 'borderline'
+            outcomes_failed_count = df["Outcomes"].str.lower().str.contains("failed", na=False).sum()
+            outcomes_borderline_count = df["Outcomes"].str.lower().str.contains("borderline", na=False).sum()
+
+            # Display results
+            st.subheader("Analysis Results")
+            st.write("**Issues Analysis:**")
+            st.write(f"- Count of 'None' in Issues column: {issues_none_count}")
+            st.write(f"- Count of other values in Issues column: {issues_other_count}")
+
+            st.write("**Outcomes Analysis:**")
+            st.write(f"- Count of 'Failed' in Outcomes column: {outcomes_failed_count}")
+            st.write(f"- Count of 'Borderline' in Outcomes column: {outcomes_borderline_count}")
+        else:
             st.error(f"The uploaded file must contain the following columns: {', '.join(required_columns)}")
-            st.stop()
-
-        # Clean and preprocess data
-        df["Issues"] = df["Issues"].fillna("none").str.lower()
-        df["Outcomes"] = df["Outcomes"].fillna("").str.lower()
-
-        # Analysis
-        st.subheader("Analysis Results")
-
-        # Issues analysis
-        st.write("**Issues Analysis**")
-        issue_counts = df["Issues"].value_counts()
-        st.write("Counts by issue category:")
-        st.dataframe(issue_counts)
-
-        # Visualize issues
-        st.write("Issues Distribution:")
-        fig, ax = plt.subplots()
-        issue_counts.plot(kind="bar", ax=ax)
-        st.pyplot(fig)
-
-        # Outcomes analysis
-        st.write("**Outcomes Analysis**")
-        failed_students = df[df["Outcomes"].str.contains("failed", na=False)]
-        borderline_students = df[df["Outcomes"].str.contains("borderline", na=False)]
-
-        st.write(f"Total students with 'Failed' outcome: {len(failed_students)}")
-        st.write(f"Total students with 'Borderline' outcome: {len(borderline_students)}")
-
-        # List of failed or borderline students with non-"none" issues
-        critical_cases = df[
-            (df["Outcomes"].str.contains("failed|borderline", na=False))
-            & (df["Issues"] != "none")
-        ]
-        st.write("**Critical Cases (Failed/Borderline with Issues):**")
-        st.dataframe(critical_cases)
-
-        # Visualize outcomes
-        st.write("Outcomes Distribution:")
-        outcomes_counts = df["Outcomes"].value_counts()
-        fig, ax = plt.subplots()
-        outcomes_counts.plot(kind="pie", autopct="%1.1f%%", ax=ax)
-        st.pyplot(fig)
-
     except Exception as e:
-        st.error(f"An error occurred: {e}")
+        st.error(f"An error occurred while processing the file: {e}")
 else:
     st.info("Please upload a file to begin analysis.")
