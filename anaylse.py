@@ -35,7 +35,7 @@ if uploaded_file:
         if all(col in df.columns for col in required_columns):
             # Identify modules with and without issues
             df['Has Issues'] = df['Issues'].apply(
-                lambda x: 'No' if str(x).strip().lower() == 'none' else 'Yes'
+                lambda x: 'No' if pd.isna(x) or str(x).strip().lower() == 'none' else 'Yes'
             )
 
             # Count the number of modules with and without issues
@@ -44,6 +44,10 @@ if uploaded_file:
             # Analyze 'Outcomes' column for 'failed' and 'borderline'
             outcomes_failed_count = df["Outcomes"].str.lower().str.contains("failed", na=False).sum()
             outcomes_borderline_count = df["Outcomes"].str.lower().str.contains("borderline", na=False).sum()
+
+            # Debugging step to check the processed data (remove in production)
+            st.write("Processed DataFrame:")
+            st.dataframe(df)
 
             # Display results
             st.subheader("Analysis Results")
