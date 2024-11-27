@@ -42,12 +42,12 @@ if uploaded_file:
             total_failed_students = df["Failed Students"].fillna(0).sum()
 
             # Display results
-            st.subheader("Analysis Results")
-            st.write("**Issues Analysis:**")
+            st.subheader("Moderation Analysis")
+            st.write("**Summary of Moderation Issues:**")
             st.write(f"- Count of 'No' (no issues): {issues_summary_corrected.get('No', 0)}")
             st.write(f"- Count of 'Yes' (issues present): {issues_summary_corrected.get('Yes', 0)}")
 
-            st.write("**Outcomes Analysis:**")
+            st.write("**Borderline and Fails:**")
             st.write(f"- Total Borderline Students: {int(total_borderline_students)}")
             st.write(f"- Total Failed Students: {int(total_failed_students)}")
 
