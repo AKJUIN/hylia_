@@ -31,7 +31,7 @@ if uploaded_file:
         st.dataframe(df.head())
 
         # Ensure required columns exist
-        required_columns = ["Issues", "Outcomes"]
+        required_columns = ["Issues", "Borderline Students", "Failed Students"]
         if all(col in df.columns for col in required_columns):
             # Identify modules with and without issues
             df['Has Issues'] = df['Issues'].apply(
@@ -41,9 +41,9 @@ if uploaded_file:
             # Count the number of modules with and without issues
             issues_summary_corrected = df['Has Issues'].value_counts()
 
-            # Analyze 'Outcomes' column for 'failed' and 'borderline'
-            outcomes_failed_count = df["Outcomes"].str.lower().str.contains("failed", na=False).sum()
-            outcomes_borderline_count = df["Outcomes"].str.lower().str.contains("borderline", na=False).sum()
+            # Calculate total borderline and failed students
+            total_borderline_students = df["Borderline Students"].fillna(0).sum()
+            total_failed_students = df["Failed Students"].fillna(0).sum()
 
             # Debugging step to check the processed data (remove in production)
             st.write("Processed DataFrame:")
@@ -56,8 +56,8 @@ if uploaded_file:
             st.write(f"- Count of 'Yes' (issues present): {issues_summary_corrected.get('Yes', 0)}")
 
             st.write("**Outcomes Analysis:**")
-            st.write(f"- Count of 'Failed' in Outcomes column: {outcomes_failed_count}")
-            st.write(f"- Count of 'Borderline' in Outcomes column: {outcomes_borderline_count}")
+            st.write(f"- Total Borderline Students: {int(total_borderline_students)}")
+            st.write(f"- Total Failed Students: {int(total_failed_students)}")
 
             # Visualization for issues
             st.subheader("Visualization")
