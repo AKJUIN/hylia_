@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Streamlit app title
 st.title("Spreadsheet Analysis Tool")
@@ -56,13 +55,13 @@ if uploaded_file:
             st.subheader("Visualization")
             st.write("**Proportion of Modules With and Without Issues:**")
 
-            # Bar chart with different colors
-            fig, ax = plt.subplots(figsize=(6, 4))
-            issues_summary_corrected.plot(kind='bar', color=['green', 'red'], ax=ax)
-            ax.set_title("Proportion of Modules With and Without Issues")
-            ax.set_xlabel("Has Issues")
-            ax.set_ylabel("Count")
-            st.pyplot(fig)
+            # Create a DataFrame for visualization
+            issues_summary_df = issues_summary_corrected.reset_index()
+            issues_summary_df.columns = ['Has Issues', 'Count']
+
+            # Use Streamlit's bar chart
+            st.bar_chart(data=issues_summary_df.set_index('Has Issues'))
+
         else:
             st.error(f"The uploaded file must contain the following columns: {', '.join(required_columns)}")
     except Exception as e:
