@@ -33,11 +33,13 @@ if uploaded_file:
         # Ensure required columns exist
         required_columns = ["Issues", "Outcomes"]
         if all(col in df.columns for col in required_columns):
-            # Identify modules with and without issues
-df['Has Issues'] = df['Issues'].apply(lambda x: 'No' if str(x).strip().lower() == 'none' else 'Yes')
+ # Identify modules with and without issues
+df['Has Issues'] = df['Issues'].apply(
+    lambda x: 'No' if str(x).strip().lower() == 'none' else 'Yes'
+)
 
 # Count the number of modules with and without issues
-issues_summary_corrected = df['Has Issues'].value_counts()
+issues_summary_corrected = df['Has Issues'].value_counts()           
 
             # Analyze 'Outcomes' column for 'failed' and 'borderline'
             outcomes_failed_count = df["Outcomes"].str.lower().str.contains("failed", na=False).sum()
