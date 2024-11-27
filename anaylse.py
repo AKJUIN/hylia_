@@ -33,13 +33,13 @@ if uploaded_file:
         # Ensure required columns exist
         required_columns = ["Issues", "Outcomes"]
         if all(col in df.columns for col in required_columns):
- # Identify modules with and without issues
-df['Has Issues'] = df['Issues'].apply(
-    lambda x: 'No' if str(x).strip().lower() == 'none' else 'Yes'
-)
+            # Identify modules with and without issues
+            df['Has Issues'] = df['Issues'].apply(
+                lambda x: 'No' if str(x).strip().lower() == 'none' else 'Yes'
+            )
 
-# Count the number of modules with and without issues
-issues_summary_corrected = df['Has Issues'].value_counts()           
+            # Count the number of modules with and without issues
+            issues_summary_corrected = df['Has Issues'].value_counts()
 
             # Analyze 'Outcomes' column for 'failed' and 'borderline'
             outcomes_failed_count = df["Outcomes"].str.lower().str.contains("failed", na=False).sum()
@@ -48,12 +48,17 @@ issues_summary_corrected = df['Has Issues'].value_counts()
             # Display results
             st.subheader("Analysis Results")
             st.write("**Issues Analysis:**")
-            st.write(f"- Count of 'None' in Issues column: {issues_none_count}")
-            st.write(f"- Count of other values in Issues column: {issues_other_count}")
+            st.write(f"- Count of 'No' (no issues): {issues_summary_corrected.get('No', 0)}")
+            st.write(f"- Count of 'Yes' (issues present): {issues_summary_corrected.get('Yes', 0)}")
 
             st.write("**Outcomes Analysis:**")
             st.write(f"- Count of 'Failed' in Outcomes column: {outcomes_failed_count}")
             st.write(f"- Count of 'Borderline' in Outcomes column: {outcomes_borderline_count}")
+
+            # Visualization for issues
+            st.subheader("Visualization")
+            st.write("**Proportion of Modules With and Without Issues:**")
+            st.bar_chart(issues_summary_corrected)
         else:
             st.error(f"The uploaded file must contain the following columns: {', '.join(required_columns)}")
     except Exception as e:
