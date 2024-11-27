@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Streamlit app title
 st.title("Spreadsheet Analysis Tool")
@@ -26,10 +27,6 @@ if uploaded_file:
             st.error("Unsupported file format. Please upload a CSV or Excel file.")
             st.stop()
 
-        # Display the first few rows of the uploaded file
-        st.write("Preview of the uploaded file:")
-        st.dataframe(df.head())
-
         # Ensure required columns exist
         required_columns = ["Issues", "Borderline Students", "Failed Students"]
         if all(col in df.columns for col in required_columns):
@@ -45,10 +42,6 @@ if uploaded_file:
             total_borderline_students = df["Borderline Students"].fillna(0).sum()
             total_failed_students = df["Failed Students"].fillna(0).sum()
 
-            # Debugging step to check the processed data (remove in production)
-            st.write("Processed DataFrame:")
-            st.dataframe(df)
-
             # Display results
             st.subheader("Analysis Results")
             st.write("**Issues Analysis:**")
@@ -62,7 +55,14 @@ if uploaded_file:
             # Visualization for issues
             st.subheader("Visualization")
             st.write("**Proportion of Modules With and Without Issues:**")
-            st.bar_chart(issues_summary_corrected)
+
+            # Bar chart with different colors
+            fig, ax = plt.subplots(figsize=(6, 4))
+            issues_summary_corrected.plot(kind='bar', color=['green', 'red'], ax=ax)
+            ax.set_title("Proportion of Modules With and Without Issues")
+            ax.set_xlabel("Has Issues")
+            ax.set_ylabel("Count")
+            st.pyplot(fig)
         else:
             st.error(f"The uploaded file must contain the following columns: {', '.join(required_columns)}")
     except Exception as e:
