@@ -4,6 +4,9 @@ import pandas as pd
 # Streamlit app title
 st.title("Spreadsheet Analysis and Comparison Tool")
 
+# Define required columns at the top of the script
+required_columns = ["Issues", "Borderline Students", "Failed Students"]
+
 # Tabs for functionality
 tab1, tab2 = st.tabs(["Analyze a Single Spreadsheet", "Compare Two Spreadsheets"])
 
@@ -22,7 +25,6 @@ with tab1:
                 df = pd.read_excel(uploaded_file, engine="openpyxl")
 
             # Ensure required columns exist
-            required_columns = ["Issues", "Borderline Students", "Failed Students"]
             if all(col in df.columns for col in required_columns):
                 # Process data
                 issues_summary = df["Issues"].apply(
