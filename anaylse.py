@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Streamlit app title
-st.title("Spreadsheet Analysis Tool")
+st.title("Moderation Analysis Tool")
 
 # File upload section
 uploaded_file = st.file_uploader("Upload a spreadsheet (Excel or CSV)", type=["xlsx", "csv"])
