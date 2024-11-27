@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Streamlit app title
-st.title("Spreadsheet Analysis and Comparison Tool")
+st.title("Moderation Analysis and Comparison Tool")
 
 # Define required columns at the top of the script
 required_columns = ["Issues", "Borderline Students", "Failed Students"]
