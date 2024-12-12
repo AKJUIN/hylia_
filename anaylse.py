@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from transformers import pipeline
+pip install transformers
+
 
 # Load an NLP model for issue categorization (e.g., sentiment-analysis pipeline)
 @st.cache_resource
