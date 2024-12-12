@@ -18,7 +18,7 @@ required_columns = ["Module", "Issues", "Borderline Students", "Failed Students"
 # Tabs for functionality
 tab1, tab2 = st.tabs(["Analyze a Single Spreadsheet", "Compare Two Spreadsheets"])
 
-# Tab 1: Single spreadsheet analysis with AI
+
 with tab1:
     st.header("Analyze a Single Spreadsheet")
     uploaded_file = st.file_uploader("Upload a spreadsheet (Excel or CSV)", type=["xlsx", "csv"])
@@ -57,7 +57,7 @@ with tab1:
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
-# Tab 2: Compare two spreadsheets with AI
+# Tab 2:
 with tab2:
     st.header("Compare Two Spreadsheets")
     uploaded_file1 = st.file_uploader("Upload the first spreadsheet (Excel or CSV)", type=["xlsx", "csv"], key="file1")
@@ -78,7 +78,7 @@ with tab2:
 
             # Ensure required columns exist
             if all(col in df1.columns for col in required_columns) and all(col in df2.columns for col in required_columns):
-                # Standardize issues column and categorize using AI
+                
                 df1["Issues"] = df1["Issues"].apply(
                     lambda x: "No" if pd.isna(x) or str(x).strip().lower() == "none" else "Yes"
                 )
