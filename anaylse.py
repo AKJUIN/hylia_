@@ -1,33 +1,23 @@
 import streamlit as st
 import pandas as pd
-from transformers import pipeline
-
-
-
-# Load an NLP model for issue categorization (e.g., sentiment-analysis pipeline)
-@st.cache_resource
-def load_nlp_model():
-    return pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
-
-nlp_model = load_nlp_model()
 
 # Streamlit app title
 st.title("Spreadsheet Analysis and Module Comparison Tool")
 
-# Define required columns
+# Define required columns at the top of the script
 required_columns = ["Module", "Issues", "Borderline Students", "Failed Students"]
 
 # Tabs for functionality
 tab1, tab2 = st.tabs(["Analyze a Single Spreadsheet", "Compare Two Spreadsheets"])
 
-# Tab 1: Single spreadsheet analysis with AI
+# Tab 1: Single spreadsheet analysis
 with tab1:
     st.header("Analyze a Single Spreadsheet")
     uploaded_file = st.file_uploader("Upload a spreadsheet (Excel or CSV)", type=["xlsx", "csv"])
 
     if uploaded_file:
         try:
-            # Load the uploaded file
+            # Determine file type and load into a DataFrame
             if uploaded_file.name.endswith(".csv"):
                 df = pd.read_csv(uploaded_file)
             elif uploaded_file.name.endswith(".xlsx"):
@@ -36,30 +26,32 @@ with tab1:
 
             # Ensure required columns exist
             if all(col in df.columns for col in required_columns):
-                # Process and categorize issues using AI
-                st.subheader("AI-Powered Issue Categorization")
-                df["Issue Category"] = df["Issues"].apply(
-                    lambda x: nlp_model(str(x))[0]["label"] if pd.notna(x) and str(x).strip().lower() != "none" else "No Issue"
-                )
-                st.dataframe(df[["Module", "Issues", "Issue Category"]])
+                # Process data
+                issues_summary = df["Issues"].apply(
+                    lambda x: "No" if pd.isna(x) or str(x).strip().lower() == "none" else "Yes"
+                ).value_counts()
+                total_borderline = df["Borderline Students"].fillna(0).sum()
+                total_failed = df["Failed Students"].fillna(0).sum()
 
-                # Summarize categorized data
-                st.subheader("Categorized Issue Summary")
-                category_summary = df["Issue Category"].value_counts()
-                st.bar_chart(category_summary)
+                # Display results
+                st.subheader("Moderation Analysis")
+                st.write(f"**No issues reported:** {issues_summary.get('No', 0)}")
+                st.write(f"**Issues reported:** {issues_summary.get('Yes', 0)}")
+                st.write(f"**Total Borderline Students:** {int(total_borderline)}")
+                st.write(f"**Total Failed Students:** {int(total_failed)}")
 
-                # Visualizations for borderline and failed students
-                st.subheader("Borderline and Failed Students Visualization")
+                # Visualization
+                st.subheader("Visualization")
                 st.bar_chart(data=pd.DataFrame({
-                    "Category": ["Borderline Students", "Failed Students"],
-                    "Count": [df["Borderline Students"].sum(), df["Failed Students"].sum()]
+                    "Category": ["No issues", "Issues"],
+                    "Count": [issues_summary.get("No", 0), issues_summary.get("Yes", 0)]
                 }).set_index("Category"))
             else:
                 st.error(f"The uploaded file must contain the following columns: {', '.join(required_columns)}")
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
-# Tab 2: Compare two spreadsheets with AI
+# Tab 2: Compare two spreadsheets
 with tab2:
     st.header("Compare Two Spreadsheets")
     uploaded_file1 = st.file_uploader("Upload the first spreadsheet (Excel or CSV)", type=["xlsx", "csv"], key="file1")
@@ -80,45 +72,42 @@ with tab2:
 
             # Ensure required columns exist
             if all(col in df1.columns for col in required_columns) and all(col in df2.columns for col in required_columns):
-                # Standardize issues column and categorize using AI
+                # Standardize issues column to "Yes"/"No" for consistency
                 df1["Issues"] = df1["Issues"].apply(
                     lambda x: "No" if pd.isna(x) or str(x).strip().lower() == "none" else "Yes"
                 )
                 df2["Issues"] = df2["Issues"].apply(
                     lambda x: "No" if pd.isna(x) or str(x).strip().lower() == "none" else "Yes"
                 )
-                df1["Issue Category"] = df1["Issues"].apply(
-                    lambda x: nlp_model(str(x))[0]["label"] if x != "No" else "No Issue"
-                )
-                df2["Issue Category"] = df2["Issues"].apply(
-                    lambda x: nlp_model(str(x))[0]["label"] if x != "No" else "No Issue"
-                )
 
-                # Merge and compare
+                # Merge data for module-by-module comparison
                 merged_df = pd.merge(
-                    df1[["Module", "Issue Category"]].rename(columns={"Issue Category": "Category Spreadsheet 1"}),
-                    df2[["Module", "Issue Category"]].rename(columns={"Issue Category": "Category Spreadsheet 2"}),
+                    df1[["Module", "Issues"]].rename(columns={"Issues": "Issues in Spreadsheet 1"}),
+                    df2[["Module", "Issues"]].rename(columns={"Issues": "Issues in Spreadsheet 2"}),
                     on="Module",
                     how="outer"
                 )
 
-                merged_df["Comparison"] = merged_df.apply(
-                    lambda row: "Match" if row["Category Spreadsheet 1"] == row["Category Spreadsheet 2"] else "Mismatch",
+                # Determine if issues match for each module
+                merged_df["Issue Comparison"] = merged_df.apply(
+                    lambda row: "Match" if row["Issues in Spreadsheet 1"] == row["Issues in Spreadsheet 2"]
+                    else "Mismatch",
                     axis=1
                 )
 
-                # Display comparison results
-                st.subheader("Module-by-Module AI Comparison")
+                # Display results
+                st.subheader("Module-by-Module Issue Comparison")
                 st.dataframe(merged_df)
 
                 # Summary of matches and mismatches
-                match_count = (merged_df["Comparison"] == "Match").sum()
-                mismatch_count = (merged_df["Comparison"] == "Mismatch").sum()
+                match_count = (merged_df["Issue Comparison"] == "Match").sum()
+                mismatch_count = (merged_df["Issue Comparison"] == "Mismatch").sum()
 
                 st.write(f"**Number of Matches:** {match_count}")
                 st.write(f"**Number of Mismatches:** {mismatch_count}")
 
                 # Visualization of matches and mismatches
+                st.subheader("Match vs. Mismatch Visualization")
                 st.bar_chart(data=pd.DataFrame({
                     "Category": ["Matches", "Mismatches"],
                     "Count": [match_count, mismatch_count]
